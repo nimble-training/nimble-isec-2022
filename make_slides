@@ -1,4 +1,4 @@
-#! /usr/local/bin/Rscript
+#! /usr/bin/Rscript
 # usage:
 # ./make_slides overview
 # cd modules; ../make_slides nimble_bugs
