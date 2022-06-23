@@ -1,8 +1,8 @@
 ---
 title: 'Case study: Faster Spatial Capture-recapture'
-subtitle: "NIMBLE 2021 virtual NCSE workshop"
+subtitle: "NIMBLE ISEC 2022 (remote) workshop"
 author: "NIMBLE Development Team"
-date: "June 2021"
+date: "June 2022"
 output:
   slidy_presentation: default
   beamer_presentation: default

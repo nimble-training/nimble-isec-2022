@@ -1,8 +1,8 @@
 ---
 title: "Distributions provided in nimbleEcology"
-subtitle: "NIMBLE 2021 virtual NCSE workshop"
+subtitle: "NIMBLE ISEC 2022 (remote) workshop"
 author: "NIMBLE Development Team"
-date: "June 2021"
+date: "June 2022"
 output:
   slidy_presentation: default
   beamer_presentation: default
@@ -129,11 +129,11 @@ Why we don't care as much about mean MCMC efficiency
 - It is tempting to think mean (across parameters) of MCMC efficiency is a good measure of overall performance.
 - If some parameters are mixing very well and others very poorly, you should not feel the results are acceptable.
 
-Two principle of MCMC efficiency
+Two principles of MCMC efficiency
 =====
 
 1. A fast-computing, slow-mixing MCMC can sometimes beat a slow-computing, fast-mixing MCMC.
-2. Marginalizing vs. sampling:  The winner depends on computataional costs and mixing.
+2. Marginalizing vs. sampling:  The winner depends on computational costs and mixing.
 
     * Dynamic occupancy and N-mixture can perform better with sampling (Ponisio et al. 2020).
 

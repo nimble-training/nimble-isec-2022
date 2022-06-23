@@ -5,7 +5,7 @@ has_ggplot2 <- require(ggplot2)
 has_mcmcplots <- require(mcmcplots)
 has_coda <- require(coda)
 has_nimbleSCR <- require(nimbleSCR)
-generate_original_results <- TRUE
+generate_original_results <- FALSE
 DataDir <- file.path("..","..","..","..","wolverine_data","DataScript") # Modify as needed. See below to get data
 
 
