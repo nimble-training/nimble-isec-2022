@@ -17,9 +17,9 @@ dipper_code_dCJS <- nimbleCode({
 ## ----load_dipper--------------------------------------------------------------
 dipper_example_dir <- file.path("..", "..", "content", "examples","dipper")
 dipper <- read.csv(file.path(dipper_example_dir,"dipper.csv"))
-y <- as.matrix(dipper[ , 1:7])
-y <- y + 1 # Code as 1 = not captured, 2 = captured.
-first <- apply(y, 1, function(x) min(which(x != 1))) # first capture time
+y <- as.matrix(dipper[ , 1:7]) # Coded as 0 = not captured, 1 = captured.
+# Skip this from dcat version: y <- y + 1 
+first <- apply(y, 1, function(x) min(which(x != 0))) # first capture time
 y <- y[ first != 7, ] # remove records with first capture on last occasion
 head(y)
 
@@ -175,16 +175,16 @@ dCJS <- nimbleFunction(
 )
 
 
-## ---- eval=FALSE--------------------------------------------------------------
-## C_dipper_model <- compileNimble(dipper_model)
+## ---- eval=TRUE---------------------------------------------------------------
+C_dipper_model <- compileNimble(dipper_model)
 
 
-## ---- eval=FALSE--------------------------------------------------------------
-## C_dipper_model$calculate()
-## C_dipper_model$phi <- 0.7
-## C_dipper_model$p <- 0.5
-## C_dipper_model$calculate() # Ensure any lifted nodes are calculated
-## C_dipper_model$calculate('y[5,]')
+## ---- eval=TRUE---------------------------------------------------------------
+C_dipper_model$calculate()
+C_dipper_model$phi <- 0.7
+C_dipper_model$p <- 0.5
+C_dipper_model$calculate() # Ensure any lifted nodes are calculated
+C_dipper_model$calculate('y[5,]')
 
 
 ## -----------------------------------------------------------------------------

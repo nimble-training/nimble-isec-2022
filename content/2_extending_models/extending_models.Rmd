@@ -1,8 +1,8 @@
 ---
 title: "Extending models and methods in NIMBLE"
-subtitle: "NIMBLE 2021 virtual NCSE workshop"
+subtitle: "NIMBLE ISEC 2022 (remote) workshop"
 author: "NIMBLE Development Team"
-date: "June 2021"
+date: "June 2022"
 output:
   slidy_presentation: default
   beamer_presentation: default
@@ -53,12 +53,14 @@ dipper_code_dCJS <- nimbleCode({
 
 # Load dipper example
 
+**Change from y = 1 or 2 to y = 0 or 1.**
+
 ```{r load_dipper} 
 dipper_example_dir <- file.path("..", "..", "content", "examples","dipper")
 dipper <- read.csv(file.path(dipper_example_dir,"dipper.csv"))
-y <- as.matrix(dipper[ , 1:7])
-y <- y + 1 # Code as 1 = not captured, 2 = captured.
-first <- apply(y, 1, function(x) min(which(x != 1))) # first capture time
+y <- as.matrix(dipper[ , 1:7]) # Coded as 0 = not captured, 1 = captured.
+# Skip this from dcat version: y <- y + 1 
+first <- apply(y, 1, function(x) min(which(x != 0))) # first capture time
 y <- y[ first != 7, ] # remove records with first capture on last occasion
 head(y)
 ```
@@ -88,7 +90,7 @@ dipper_inits <- function() list(phi = runif(1,0,1),
 
 # How we could write `dCJS` in R
 
-This is a standard calculation.  I'll use an HMM approach.
+This is a standard calculation.  We'll use an HMM approach.
 
 ```{r}
 dCJS_R <- function (x, probSurvive, probCapture, log = FALSE) {
@@ -163,6 +165,8 @@ dCJS(y[5,], probSurvive = 0.7, probCapture = 0.5, log = TRUE)
 ```
 
 ### We can debug it as needed in R.
+
+Run this code on your own.  You'll get an R browser inside dCJS.
 ```{r, eval=FALSE}
 debugonce(dCJS)
 dCJS(y[5,], probSurvive = 0.7, probCapture = 0.5, log = TRUE)
@@ -193,6 +197,7 @@ dipper_model <- nimbleModel(code = dipper_code_dCJS,
 dipper_model$calculate()
 ```
 
+Run this code on your own.
 ```{r, eval=FALSE}
 debugonce(dCJS)
 dipper_model$calculate("y[5,]")
@@ -204,6 +209,7 @@ dipper_model$calculate("y[5,]")
 dipper_MCMC <- buildMCMC(dipper_model)
 ```
 
+Run this code on your own.
 ```{r, eval=FALSE}
 debug(dCJS)
 dipper_MCMC$run(niter = 5)
@@ -259,11 +265,11 @@ dCJS <- nimbleFunction(
 )
 ```
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 C_dipper_model <- compileNimble(dipper_model)
 ```
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 C_dipper_model$calculate()
 C_dipper_model$phi <- 0.7
 C_dipper_model$p <- 0.5
@@ -273,11 +279,11 @@ C_dipper_model$calculate('y[5,]')
 
 # The full-blown versions of `dCJS`
 
-In the next module we will see:
+In the `nimbleEcology` module, we will see:
 
 * different versions for time-varying vs time-constant survival and capture probabilities.
 * Inclusion of a `len` (length) parameter to support random-number generation.
-* Other distributions for other common model components.
+* Other distributions for other common ecological models.
 
 # Some other ways to customize models:
 
@@ -434,10 +440,4 @@ The full RW MH sampler in nimble also includes:
 * Option to sample on log scale (with appropriate adjustment to acceptant probability).
 * Option to reflect proposals from upper and/or lower bounds.
 * Greater efficiency by rejecting if the prior is invalid without calculating other dependencies.
-
-# Reversible-jump, CAR, BNP
-
-This is a short workshop.
-
-Please see modules 7 and 8 of a recent longer workshop: [https://github.com/nimble-training/nimble-virtual-2021](https://github.com/nimble-training/nimble-virtual-2021).
 
