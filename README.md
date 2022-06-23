@@ -34,6 +34,8 @@ Without this background, you will still be able to follow the workshop, but we w
 
 ## Help with NIMBLE
 
+Our web site is [here](https://r-nimble.org).
+
 Our user manual is [here](https://r-nimble.org/html_manual/cha-welcome-nimble.html).
 
 We have a 'cheatsheet' [here](https://r-nimble.org/documentation).
