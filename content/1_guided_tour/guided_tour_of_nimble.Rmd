@@ -1,8 +1,8 @@
 ---
 title: "Guided Tour of NIMBLE"
-subtitle: "NIMBLE 2021 virtual NCSE workshop"
+subtitle: "NIMBLE ISEC 2022 (remote) workshop"
 author: "NIMBLE Development Team"
-date: "June 2021"
+date: "June 2022"
 output:
   slidy_presentation: default
   beamer_presentation: default
@@ -24,13 +24,16 @@ library(coda)
 
 # Workshop organization
 
-We have three hours.
+We have four hours.
 
-- Four modules, each 35-40 minutes with 5-10 minutes break = 45 minutes total.
+- Five modules, each 35-50 minutes with 5-10 minutes break = 45-55 minutes total.
 - 1. Overview of `nimble`.
 - 2. Extending models and methods using `nimbleFunction`s for efficiency and generality.
-- 3. `nimbleEcology` distributions for capture-recapture, occupancy, dynamic occupancy, N-mixture, and Hidden Markove models (multi-state / multi-event capture-recapture).
-- 4. Case study: Speeding up spatial capture-recapture (`nimbleSCR`).
+- 3. Model-selection with reversible jump (RJMCMC) and WAIC.  Bayesian non-parametric (BNP) distributions.
+- 4. `nimbleEcology` distributions for capture-recapture, occupancy, dynamic occupancy, N-mixture, and Hidden Markove models (multi-state / multi-event capture-recapture).
+- 5. Case study: Speeding up spatial capture-recapture (`nimbleSCR`).
+
+We don't have time for spatial models (e.g. conditional auto-regressive models).  We'll point you to a recent workshop module on those.
 
 # What Is NIMBLE?
 
@@ -45,11 +48,11 @@ We have three hours.
 - A configurable system for MCMC.
 - A library of other methods.
     
-    - Sequential Monte Carlo (particle filtering)
+    - [Sequential Monte Carlo (particle filtering)](http://statistik-jstat.uibk.ac.at/article/view/v100i03)
     - Particle MCMC
     - Monte Carlo Expectation Maximization (maximum likelihood)
-    - Reversible jump MCMC for variable selection
-    - Special components for Conditional Auto-Regressive (CAR) models (spatial) and Bayesian non-parametric distributions (BNP).
+    - Reversible jump MCMC for variable selection. WAIC for model selection.
+    - Special components for conditional auto-regressive (CAR) models (spatial) and Bayesian non-parametric distributions (BNP).
 
 - A model-generic programming system to write new analysis methods using two-stage `nimbleFunction`s.
 - **N**umerical **I**nference for statistical **M**odels using **B**ayesian and **L**ikelihood **E**stimation.
@@ -95,7 +98,7 @@ Conventional Hidden Markov model code, slightly updated.
 
 * data, y: 1 = not-detected, 2 = detected.
 * latent states, z: 1 = alive, 2 = dead. (Following convention that "dead" is the last state.)
-* Modified from Gimenez et al. capture-recapture workshop
+* Modified from [Gimenez et al. 2021 online capture-recapture workshop](https://oliviergimenez.github.io/blog/hmmcrworkshop/)
 
 ```{r dipper_code_dcat}
 dipper_code_dcat <- nimbleCode({
@@ -108,10 +111,10 @@ dipper_code_dcat <- nimbleCode({
   omega[1,1:2] <- c(1 - p, p)        # Pr(alive t -> non-detected t), Pr(alive t -> detected t)
   omega[2,1:2] <- c(1, 0)            # Pr(dead t -> non-detected t), Pr(dead t -> detected t)
   for (i in 1:N){
-    z[i,first[i]] ~ dcat(delta[1:2]) # Illustrates initial state probabilities
+    z[i,first[i]] ~ dcat(delta[1:2]) # Initial state probabilities
     for (j in (first[i]+1):T){
-      z[i,j] ~ dcat(gamma[z[i,j-1], 1:2])
-      y[i,j] ~ dcat(omega[z[i,j], 1:2])
+      z[i,j] ~ dcat(gamma[z[i,j-1], 1:2])  # State transitions
+      y[i,j] ~ dcat(omega[z[i,j], 1:2])    # Data
     }
   }
 })
@@ -161,7 +164,7 @@ head(dipper_inits()$z)  # NAs
 ### Providing data and constants together.
 
 - Data and constants can be provided together **as `constants`**.
-- It would be slightly easier for BUGS/JAGS users to call this "data", but that would blur the concepts.  
+- It would be slightly easier for BUGS/JAGS users to call this "data", but that would blur the concepts.
 - NIMBLE will usually disambiguate data and constants when they are provided together as `constants`.
 
 ### What are covariates and other non-parameters/non-observations?
@@ -231,7 +234,7 @@ C_dipper_MCMC <- compileNimble(dipper_MCMC, project = dipper_model)
 samples <- runMCMC(C_dipper_MCMC, niter = 10000, samplesAsCodaMCMC = TRUE)
 # Alternative:
 # C_dipper_MCMC$run(1000)
-# samples <- as.matrix(C_dipper_MCMC$mvSamples)
+# samples <- code::as.mcmc(as.matrix(C_dipper_MCMC$mvSamples))
 summary(samples)
 plot(samples)
 ```
@@ -254,7 +257,7 @@ dipper_model$gamma           # Look at a model variable,
 dipper_model$y[1:2, ]        # or part of one.
 dipper_model$isData('gamma') # Query what is data
 dipper_model$getNodeNames()[1:10]  # Query what are the nodes (vertices) in the graph,
-dipper_model$getDependencies("z[1, 3]") # and what depends on what..
+dipper_model$getDependencies("z[1, 3]") # and what depends on what.
 dipper_model$calculate()     # Calculate the entire model. Return sum of log probabilities.
 dipper_model$calculate('z[1, 3]') # Calculate one or more nodes in the model.
 dipper_model$calculate(dipper_model$getDependencies('z[1, 3]')) # Calculate based on model structure.
@@ -280,7 +283,7 @@ nimbleCode({
 })
 ```
 
-* NIMBLE defaults to parameterizations from **WinBUGS/OpenBUGS/JAGS, not R**.  
+* NIMBLE defaults to parameterizations from **WinBUGS/OpenBUGS/JAGS, not R**.
 * Default SD/Var/precision for `dnorm` is **precision** = 1/variance.
 * NIMBLE converts this to a *canonical* parameterization for computations by treating it like this:
 
@@ -313,12 +316,12 @@ nimbleCode({
 
 # How can I use the MCMC configuration in R?
 
-* Change the set of samples that compose an MCMC algorithm.
+* Change the set of samplers that compose an MCMC algorithm.
 * See `help(samplers)` for samplers built in to `nimble`.
 * Default sampler assignments:
 
     * Conjugate (Gibbs) sampler when possible.
-    * Special samplers for Bernoulli, categorical, Dirichlet, multinomial, possibly others.
+    * Special samplers for Bernoulli, categorical, Dirichlet, multinomial, CAR, BNP, possibly others.
     * Slice samplers for discrete distributions such as Poisson.
     * Adaptive random-walk Metropolis-Hastings samplers for other continuous distributions.
     
@@ -330,14 +333,14 @@ nimbleCode({
 * Some ways to customize samplers
 
     * Block (jointly) sample correlated dimensions.
-    * Block (joint) samplers include adaptive random-walk Metropolis-Hastings, automated factor slice sampler, and elliptical slice sampler (special case for MVN).
+    * Block samplers include adaptive random-walk Metropolis-Hastings, automated factor slice sampler, and elliptical slice sampler (special case for MVN).
     * Include multiple samplers that update slowly mixing nodes
     * Sample nodes such as standard deviations on a log scale (control parameter of adaptive random-walk Metropolis-Hastings ("RW") sampler).
     
 * Write your own sampler:
 
     * You don't need to invent new MCMC theory in order to write useful samplers.
-    * E.g., sample in way that respects model constraints or otherwise takes advantage of model structure.
+    * E.g., copy and modify our random-walk Metropolis-Hastings sampler to make proposals that respect model constraints or otherwise take advantage of model structure.
     * A good opportunity for new collaborations and new R packages.
 
 ```{r, eval=TRUE}
