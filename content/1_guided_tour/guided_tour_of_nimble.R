@@ -26,10 +26,10 @@ dipper_code_dcat <- nimbleCode({
   omega[1,1:2] <- c(1 - p, p)        # Pr(alive t -> non-detected t), Pr(alive t -> detected t)
   omega[2,1:2] <- c(1, 0)            # Pr(dead t -> non-detected t), Pr(dead t -> detected t)
   for (i in 1:N){
-    z[i,first[i]] ~ dcat(delta[1:2]) # Illustrates initial state probabilities
+    z[i,first[i]] ~ dcat(delta[1:2]) # Initial state probabilities
     for (j in (first[i]+1):T){
-      z[i,j] ~ dcat(gamma[z[i,j-1], 1:2])
-      y[i,j] ~ dcat(omega[z[i,j], 1:2])
+      z[i,j] ~ dcat(gamma[z[i,j-1], 1:2])  # State transitions
+      y[i,j] ~ dcat(omega[z[i,j], 1:2])    # Data
     }
   }
 })
@@ -93,7 +93,7 @@ C_dipper_MCMC <- compileNimble(dipper_MCMC, project = dipper_model)
 samples <- runMCMC(C_dipper_MCMC, niter = 10000, samplesAsCodaMCMC = TRUE)
 # Alternative:
 # C_dipper_MCMC$run(1000)
-# samples <- as.matrix(C_dipper_MCMC$mvSamples)
+# samples <- code::as.mcmc(as.matrix(C_dipper_MCMC$mvSamples))
 summary(samples)
 plot(samples)
 
@@ -114,7 +114,7 @@ dipper_model$gamma           # Look at a model variable,
 dipper_model$y[1:2, ]        # or part of one.
 dipper_model$isData('gamma') # Query what is data
 dipper_model$getNodeNames()[1:10]  # Query what are the nodes (vertices) in the graph,
-dipper_model$getDependencies("z[1, 3]") # and what depends on what..
+dipper_model$getDependencies("z[1, 3]") # and what depends on what.
 dipper_model$calculate()     # Calculate the entire model. Return sum of log probabilities.
 dipper_model$calculate('z[1, 3]') # Calculate one or more nodes in the model.
 dipper_model$calculate(dipper_model$getDependencies('z[1, 3]')) # Calculate based on model structure.
