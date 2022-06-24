@@ -57,6 +57,15 @@ We don't have time for spatial models (e.g. conditional auto-regressive models).
 - A model-generic programming system to write new analysis methods using two-stage `nimbleFunction`s.
 - **N**umerical **I**nference for statistical **M**odels using **B**ayesian and **L**ikelihood **E**stimation.
 
+# Current news
+
+- NIMBLE is introducing support for automatic derivatives (AD) for any part of model.
+- AD enables methods like Hamiltonian Monte Carlo (HMC, in package `nimbleHMC`) and Laplace approximation (in `nimble`).
+- This is a complicated feature so we are entering a "beta release" stage for anyone who wants to be an early adopter and tester.
+- See upcoming ISEC talks by Daniel Turek (HMC) and Wei Zhang (Laplace approximation).
+- Beta release information and instructions are at [https://r-nimble.org/ad-beta](https://r-nimble.org/ad-beta).
+- We will not cover these new features today.
+
 # Assumptions for this workshop
 
 - You are familiar with the BUGS/JAGS model language.

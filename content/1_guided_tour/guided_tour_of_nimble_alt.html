@@ -404,8 +404,8 @@ occupancy, dynamic occupancy, N-mixture, and Hidden Markove models
 </ol></li>
 </ul>
 <p>We don’t have time for spatial models (e.g. conditional
-auto-regressive models). We’ll point you to a recent workshop module for
-that.</p>
+auto-regressive models). We’ll point you to a recent workshop module on
+those.</p>
 </div>
 <div id="what-is-nimble" class="section level1">
 <h1>What Is NIMBLE?</h1>
@@ -428,7 +428,8 @@ JAGS.</p></li>
 Monte Carlo (particle filtering)</a></li>
 <li>Particle MCMC</li>
 <li>Monte Carlo Expectation Maximization (maximum likelihood)</li>
-<li>Reversible jump MCMC for variable selection</li>
+<li>Reversible jump MCMC for variable selection. WAIC for model
+selection.</li>
 <li>Special components for conditional auto-regressive (CAR) models
 (spatial) and Bayesian non-parametric distributions (BNP).</li>
 </ul></li>
@@ -437,6 +438,22 @@ using two-stage <code>nimbleFunction</code>s.</p></li>
 <li><p><strong>N</strong>umerical <strong>I</strong>nference for
 statistical <strong>M</strong>odels using <strong>B</strong>ayesian and
 <strong>L</strong>ikelihood <strong>E</strong>stimation.</p></li>
+</ul>
+</div>
+<div id="current-news" class="section level1">
+<h1>Current news</h1>
+<ul>
+<li>NIMBLE is introducing support for automatic derivatives (AD) for any
+part of model.</li>
+<li>AD enables methods like Hamiltonian Monte Carlo (HMC, in package
+<code>nimbleHMC</code>) and Laplace approximation (in
+<code>nimble</code>).</li>
+<li>This is a complicated feature so we are entering a “beta release”
+stage for anyone who wants to be an early adopter and tester.</li>
+<li>See upcoming ISEC talks by Daniel Turek (HMC) and Wei Zhang (Laplace
+approximation).</li>
+<li>Beta release information and instructions are at <a href="https://r-nimble.org/ad-beta">https://r-nimble.org/ad-beta</a>.</li>
+<li>We will not cover these new features today.</li>
 </ul>
 </div>
 <div id="assumptions-for-this-workshop" class="section level1">
