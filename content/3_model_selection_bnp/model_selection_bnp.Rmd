@@ -151,12 +151,10 @@ WAIC uses the full posterior, so does not rely on the plug-in predictive density
 
 # Using WAIC
 
-To use the version of WAIC that considers prediction of new observations (more later), we need to monitor ALL
-parameters, including random effects. 
+We'll use NIMBLE's default WAIC, which considers prediction of new observations (more later). 
 
 ```{r, waic}
-outputFull <- nimbleMCMC(code = codeParam, data = data, inits = inits,
-                      constants = constants, monitors = c("mu", "tau", "gamma", "theta"), 
+outputFull <- nimbleMCMC(code = codeParam, data = data, inits = inits, constants = constants,
                       thin = 10, niter = 11000, nburnin = 1000, nchains = 1, 
                       setSeed = TRUE, WAIC = TRUE)
 
@@ -174,7 +172,7 @@ codeParamReduced <- nimbleCode({
 })
 
 outputReduced <- nimbleMCMC(code = codeParamReduced, data = data, inits = inits,
-                      constants = constants, monitors = c("mu", "tau", "gamma"),
+                      constants = constants, 
                       thin = 10, niter = 11000, nburnin = 1000, nchains = 1, 
                       setSeed = TRUE, WAIC = TRUE)
 ```
@@ -200,9 +198,9 @@ The better WAIC for the full model is not surprising given what we saw in the po
  - There are different variations on WAIC depending on what predictive distribution is of interest:
  
     - New observations (conditional WAIC, default in NIMBLE)
-         - For example, predicting new E. cervi observations for existing farms
+         - For example, predicting observations for existing studies
     - New groups (often represented as a new random effect) (marginal WAIC)
-         - For example, predicting new E. cervi observations for new farms without any data
+         - For example, predicting new observations for new studies
 
  - WAIC relies on being able to partition (group) the data into `n` pieces; not clear how to use for spatial or temporally-correlated data and other complicated situations
     - By default in NIMBLE, observations are treated individually (not grouped), unless you use a multivariate distribution.
@@ -221,8 +219,7 @@ head(groups)
 
 modelFull <- nimbleModel(code = codeParam, data = data, inits = inits,
                       constants = constants)
-mcmcFull <- buildMCMC(modelFull, monitors = c("mu", "tau", "gamma", "theta"),
-         enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))
+mcmcFull <- buildMCMC(modelFull, enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))
 
 cModelFull <- compileNimble(modelFull)
 cmcmcFull <- compileNimble(mcmcFull, project = modelFull)
@@ -230,8 +227,7 @@ outputFull <- runMCMC(cmcmcFull, thin = 10, niter = 11000, nburnin = 1000, nchai
 
 modelReduced <- nimbleModel(code = codeParamReduced, data = data, inits = inits,
                       constants = constants)
-mcmcReduced <- buildMCMC(modelReduced, monitors = c("mu", "tau", "gamma"),
-         enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))
+mcmcReduced <- buildMCMC(modelReduced, enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))
 
 cModelReduced <- compileNimble(modelReduced)
 cmcmcReduced <- compileNimble(mcmcReduced, project = modelReduced)
@@ -250,8 +246,7 @@ Here we'll compare models, considering how well each model does in predicting ne
 ```{r, marginal-WAIC}
 modelFull <- nimbleModel(code = codeParam, data = data, inits = inits,
                       constants = constants)
-mcmcFull <- buildMCMC(modelFull, monitors = c("mu", "tau", "gamma", "theta"),
-         enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = 'gamma'))
+mcmcFull <- buildMCMC(modelFull, enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = 'gamma'))
 
 cModelFull <- compileNimble(modelFull)
 cmcmcFull <- compileNimble(mcmcFull, project = modelFull)
@@ -259,8 +254,7 @@ outputFull <- runMCMC(cmcmcFull, thin = 10, niter = 11000, nburnin = 1000, nchai
 
 modelReduced <- nimbleModel(code = codeParamReduced, data = data, inits = inits,
                       constants = constants)
-mcmcReduced <- buildMCMC(modelReduced, monitors = c("mu", "tau", "gamma"),
-         enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = 'gamma'))
+mcmcReduced <- buildMCMC(modelReduced, enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = 'gamma'))
 
 cModelReduced <- compileNimble(modelReduced)
 cmcmcReduced <- compileNimble(mcmcReduced, project = modelReduced)
@@ -270,7 +264,7 @@ outputFull$WAIC
 outputReduced$WAIC
 ```
 
-To be honest, I'm not sure why the marginal WAIC doesn't favor the full model. One would think
+To be honest, I'm not sure why the marginal WAIC doesn't more strongly favor the full model. One would think
 that including `theta` would still help even when considering a new study where one has no
 direct information about `gamma`.
 
@@ -423,7 +417,7 @@ $$ \frac{n_k}{i-1+\alpha} $$
 
 The discreteness of the DP/CRP is good for clustering but bad for representing continuous distributions (like what we would want for the meta analysis).
 
-Instead, we use the DP combined with a standard mixture modeling approach, such as a mixture of normal distributions. The CRP clusters observations (in our case Avandia study random effects) to mixture components.
+Instead, we use the DP combined with a standard mixture modeling approach, such as a mixture of normal distributions. The CRP clusters items (in our case Avandia study random effects) to mixture components.
 
 
 
@@ -450,9 +444,9 @@ codeBNP <- nimbleCode({
     tauTilde[i] ~ dinvgamma(2, 1)
   }
   # CRP for clustering studies to mixture components
-  xi[1:nStudies] ~ dCRP(conc, size = nStudies)
+  xi[1:nStudies] ~ dCRP(alpha, size = nStudies)
   # hyperparameters
-  conc ~ dgamma(1, 1)      # 'alpha' in the CRP discussion
+  alpha ~ dgamma(1, 1)      # 'alpha' in the CRP discussion
   theta ~ dflat()          # effect of Avandia
 })
 ```
@@ -466,12 +460,12 @@ Note that the choice of the priors for the mixture component parameters can be t
 ```{r, DP-MCMC, fig.cap='', fig.width=12, fig.height=5}
 set.seed(1)
 inits <- list(gamma = rnorm(nStudies), xi = sample(1:2, nStudies, replace = TRUE),
-              conc = 1, theta = 0,
+              alpha = 1, theta = 0,
               muTilde = rnorm(nStudies), tauTilde = rep(1, nStudies))
 
 samplesBNP <- nimbleMCMC(code = codeBNP, data = data, inits = inits,
                          constants = constants,
-                         monitors = c("theta", "gamma", "conc", "xi"),
+                         monitors = c("theta", "gamma", "alpha", "xi"),
                          thin = 10, niter = 11000, nburnin = 1000, nchains = 1)
 
 gammaCols <- grep('gamma', colnames(samplesBNP))
