@@ -140,10 +140,12 @@ $$ \sum_{i=1}^n E_{\tilde{y}}(\log p_{post}(\tilde{y}_i)) $$
 
 Two quantities are used:
 
-  1) Pointwise log predictive density in-sample: $\sum_{i=1}^n \log \left(\frac{1}{M} \sum_{j=1}^M p(y_i | \theta^{(j)}) \right)$
+  1) Pointwise log predictive density in-sample (lppd): $\sum_{i=1}^n \log \left(\frac{1}{M} \sum_{j=1}^M p(y_i | \theta^{(j)}) \right)$
   2) pWAIC: $\sum_{i=1}^n \mbox{Var}_{\mbox{post}} \log p(y_i | \theta)$
      - An estimate of the effective number of parameters (number of unconstrained parameters)
      - This adjusts for the bias from overfitting.
+
+$$ WAIC = -2 \mbox{lppd} + 2 p_{\mbox{WAIC}} $$
 
 WAIC uses the full posterior, so does not rely on the plug-in predictive density as in DIC.
 
@@ -505,6 +507,7 @@ conf = configureMCMC(model, print = TRUE)
  - As of nimble version 0.10.0 [we provide more flexibility for clustering multiple values at a time](https://r-nimble.org/nimbleExamples/bnp_multivariate.html).
     - E.g., clustering time series without having to use multivariate distributions.
  - `getSamplesDPmeasure()` will transform the MCMC output to give samples from the unknown density.
+ - We have a [paper on using BNP in an ecological context](https://link.springer.com/article/10.1007/s10651-021-00489-1)
  
 # What happened with Avandia?
 
