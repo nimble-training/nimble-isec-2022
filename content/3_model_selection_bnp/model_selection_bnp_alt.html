@@ -531,7 +531,7 @@ for a new dataset, <span class="math inline">\(\{\tilde{y}_i\}\)</span>:</p>
 p_{post}(\tilde{y}_i)) \]</span></p>
 <p>Two quantities are used:</p>
 <ol style="list-style-type: decimal">
-<li>Pointwise log predictive density in-sample: <span class="math inline">\(\sum_{i=1}^n \log \left(\frac{1}{M} \sum_{j=1}^M
+<li>Pointwise log predictive density in-sample (lppd): <span class="math inline">\(\sum_{i=1}^n \log \left(\frac{1}{M} \sum_{j=1}^M
 p(y_i | \theta^{(j)}) \right)\)</span></li>
 <li>pWAIC: <span class="math inline">\(\sum_{i=1}^n
 \mbox{Var}_{\mbox{post}} \log p(y_i | \theta)\)</span>
@@ -541,16 +541,16 @@ unconstrained parameters)</li>
 <li>This adjusts for the bias from overfitting.</li>
 </ul></li>
 </ol>
+<p><span class="math display">\[ WAIC = -2 \mbox{lppd} + 2
+p_{\mbox{WAIC}} \]</span></p>
 <p>WAIC uses the full posterior, so does not rely on the plug-in
 predictive density as in DIC.</p>
 </div>
 <div id="using-waic" class="section level1">
 <h1>Using WAIC</h1>
-<p>To use the version of WAIC that considers prediction of new
-observations (more later), we need to monitor ALL parameters, including
-random effects.</p>
-<pre class="r"><code>outputFull &lt;- nimbleMCMC(code = codeParam, data = data, inits = inits,
-                      constants = constants, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;, &quot;theta&quot;), 
+<p>We’ll use NIMBLE’s default WAIC, which considers prediction of new
+observations (more later).</p>
+<pre class="r"><code>outputFull &lt;- nimbleMCMC(code = codeParam, data = data, inits = inits, constants = constants,
                       thin = 10, niter = 11000, nburnin = 1000, nchains = 1, 
                       setSeed = TRUE, WAIC = TRUE)</code></pre>
 <pre><code>## Defining model</code></pre>
@@ -581,7 +581,7 @@ random effects.</p>
 })
 
 outputReduced &lt;- nimbleMCMC(code = codeParamReduced, data = data, inits = inits,
-                      constants = constants, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;),
+                      constants = constants, 
                       thin = 10, niter = 11000, nburnin = 1000, nchains = 1, 
                       setSeed = TRUE, WAIC = TRUE)</code></pre>
 <pre><code>## Defining model</code></pre>
@@ -637,14 +637,12 @@ predictive distribution is of interest:</p>
 <ul>
 <li>New observations (conditional WAIC, default in NIMBLE)
 <ul>
-<li>For example, predicting new E. cervi observations for existing
-farms</li>
+<li>For example, predicting observations for existing studies</li>
 </ul></li>
 <li>New groups (often represented as a new random effect) (marginal
 WAIC)
 <ul>
-<li>For example, predicting new E. cervi observations for new farms
-without any data</li>
+<li>For example, predicting new observations for new studies</li>
 </ul></li>
 </ul></li>
 <li><p>WAIC relies on being able to partition (group) the data into
@@ -693,10 +691,9 @@ head(groups)</code></pre>
 <pre><code>## Running calculate on model
 ##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
 <pre><code>## Checking model sizes and dimensions</code></pre>
-<pre class="r"><code>mcmcFull &lt;- buildMCMC(modelFull, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;, &quot;theta&quot;),
-         enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))</code></pre>
+<pre class="r"><code>mcmcFull &lt;- buildMCMC(modelFull, enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))</code></pre>
 <pre><code>## ===== Monitors =====
-## thin = 1: gamma, mu, tau, theta
+## thin = 1: mu, tau, theta
 ## ===== Samplers =====
 ## RW sampler (50)
 ##   - theta
@@ -728,10 +725,9 @@ head(groups)</code></pre>
 <pre><code>## Running calculate on model
 ##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
 <pre><code>## Checking model sizes and dimensions</code></pre>
-<pre class="r"><code>mcmcReduced &lt;- buildMCMC(modelReduced, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;),
-         enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))</code></pre>
+<pre class="r"><code>mcmcReduced &lt;- buildMCMC(modelReduced, enableWAIC = TRUE, controlWAIC = list(dataGroups = groups))</code></pre>
 <pre><code>## ===== Monitors =====
-## thin = 1: gamma, mu, tau
+## thin = 1: mu, tau
 ## ===== Samplers =====
 ## RW sampler (49)
 ##   - tau
@@ -783,10 +779,9 @@ predicting new studies.</p>
 <pre><code>## Running calculate on model
 ##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
 <pre><code>## Checking model sizes and dimensions</code></pre>
-<pre class="r"><code>mcmcFull &lt;- buildMCMC(modelFull, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;, &quot;theta&quot;),
-         enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = &#39;gamma&#39;))</code></pre>
+<pre class="r"><code>mcmcFull &lt;- buildMCMC(modelFull, enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = &#39;gamma&#39;))</code></pre>
 <pre><code>## ===== Monitors =====
-## thin = 1: gamma, mu, tau, theta
+## thin = 1: mu, tau, theta
 ## ===== Samplers =====
 ## RW sampler (50)
 ##   - theta
@@ -816,10 +811,9 @@ predicting new studies.</p>
 <pre><code>## Running calculate on model
 ##   [Note] Any error reports that follow may simply reflect missing values in model variables.</code></pre>
 <pre><code>## Checking model sizes and dimensions</code></pre>
-<pre class="r"><code>mcmcReduced &lt;- buildMCMC(modelReduced, monitors = c(&quot;mu&quot;, &quot;tau&quot;, &quot;gamma&quot;),
-         enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = &#39;gamma&#39;))</code></pre>
+<pre class="r"><code>mcmcReduced &lt;- buildMCMC(modelReduced, enableWAIC = TRUE, controlWAIC = list(marginalizeNodes = &#39;gamma&#39;))</code></pre>
 <pre><code>## ===== Monitors =====
-## thin = 1: gamma, mu, tau
+## thin = 1: mu, tau
 ## ===== Samplers =====
 ## RW sampler (49)
 ##   - tau
@@ -855,10 +849,10 @@ predicting new studies.</p>
 ## [1] -129.0025
 ## Field &quot;pWAIC&quot;:
 ## [1] 2.800258</code></pre>
-<p>To be honest, I’m not sure why the marginal WAIC doesn’t favor the
-full model. One would think that including <code>theta</code> would
-still help even when considering a new study where one has no direct
-information about <code>gamma</code>.</p>
+<p>To be honest, I’m not sure why the marginal WAIC doesn’t more
+strongly favor the full model. One would think that including
+<code>theta</code> would still help even when considering a new study
+where one has no direct information about <code>gamma</code>.</p>
 </div>
 <div id="introduction-to-bayesian-variable-selection" class="section level1">
 <h1>Introduction to Bayesian variable selection</h1>
@@ -1065,7 +1059,7 @@ representing continuous distributions (like what we would want for the
 meta analysis).</p>
 <p>Instead, we use the DP combined with a standard mixture modeling
 approach, such as a mixture of normal distributions. The CRP clusters
-observations (in our case Avandia study random effects) to mixture
+items (in our case Avandia study random effects) to mixture
 components.</p>
 </div>
 <div id="dp-based-random-effects-modeling-for-meta-analysis" class="section level1">
@@ -1089,9 +1083,9 @@ components.</p>
     tauTilde[i] ~ dinvgamma(2, 1)
   }
   # CRP for clustering studies to mixture components
-  xi[1:nStudies] ~ dCRP(conc, size = nStudies)
+  xi[1:nStudies] ~ dCRP(alpha, size = nStudies)
   # hyperparameters
-  conc ~ dgamma(1, 1)      # &#39;alpha&#39; in the CRP discussion
+  alpha ~ dgamma(1, 1)      # &#39;alpha&#39; in the CRP discussion
   theta ~ dflat()          # effect of Avandia
 })</code></pre>
 <p>The specification is a bit complicated, but just think of it as a
@@ -1107,12 +1101,12 @@ prior weight on extreme random effects values.</p>
 <h1>Running an MCMC for the DP-based meta analysis</h1>
 <pre class="r"><code>set.seed(1)
 inits &lt;- list(gamma = rnorm(nStudies), xi = sample(1:2, nStudies, replace = TRUE),
-              conc = 1, theta = 0,
+              alpha = 1, theta = 0,
               muTilde = rnorm(nStudies), tauTilde = rep(1, nStudies))
 
 samplesBNP &lt;- nimbleMCMC(code = codeBNP, data = data, inits = inits,
                          constants = constants,
-                         monitors = c(&quot;theta&quot;, &quot;gamma&quot;, &quot;conc&quot;, &quot;xi&quot;),
+                         monitors = c(&quot;theta&quot;, &quot;gamma&quot;, &quot;alpha&quot;, &quot;xi&quot;),
                          thin = 10, niter = 11000, nburnin = 1000, nchains = 1)</code></pre>
 <pre><code>## Defining model</code></pre>
 <pre><code>## Building model</code></pre>
@@ -1159,13 +1153,13 @@ us, but we could configure the default MCMC to see:</p>
 <pre><code>## Checking model sizes and dimensions</code></pre>
 <pre class="r"><code>conf = configureMCMC(model, print = TRUE)</code></pre>
 <pre><code>## ===== Monitors =====
-## thin = 1: conc, muTilde, tauTilde, theta
+## thin = 1: alpha, muTilde, tauTilde, theta
 ## ===== Samplers =====
 ## RW sampler (49)
 ##   - theta
 ##   - gamma[]  (48 elements)
 ## CRP_concentration sampler (1)
-##   - conc
+##   - alpha
 ## CRP_cluster_wrapper sampler (96)
 ##   - muTilde[]  (48 elements)
 ##   - tauTilde[]  (48 elements)
@@ -1185,6 +1179,8 @@ distributions.</li>
 </ul></li>
 <li><code>getSamplesDPmeasure()</code> will transform the MCMC output to
 give samples from the unknown density.</li>
+<li>We have a <a href="https://link.springer.com/article/10.1007/s10651-021-00489-1">paper
+on using BNP in an ecological context</a></li>
 </ul>
 </div>
 <div id="what-happened-with-avandia" class="section level1">
